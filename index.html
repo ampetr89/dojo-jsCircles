@@ -8,6 +8,9 @@
 	<svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
 
 	<script>
+	var r= 10;
+	var borderSize = 2; // copy value from css
+	var circles = [ ]; //array that will hold all the circles created in the app
 	function Circle(cx, cy, html_id)
 	{
 		var html_id = html_id;
@@ -27,9 +30,9 @@
 
 			//create a circle 
 			var circle = makeSVG('circle', 
-				{ 	cx: this.info.cx,
-				  	cy: this.info.cy,
-				  	r:  10,
+				{ 	cx: this.info.cx+"px",
+				  	cy: this.info.cy+"px",
+				  	r:  r,
 				  	id: html_id,
 				  	style: "fill: black"
 				});
@@ -39,14 +42,22 @@
 
 		this.update = function(time){
 			var el = document.getElementById(html_id);
+			var max_x = document.body.clientWidth - r - borderSize,
+				min_x = r + borderSize,
+				max_y = document.body.clientHeight - r - borderSize,
+				min_y = r + borderSize;
 
 			//see if the circle is going outside the browser. if it is, reverse the velocity
-			if( this.info.cx > document.body.clientWidth || this.info.cx < 0)
-			{
+			if( this.info.cx >= max_x || this.info.cx <= min_x)
+			{	
+				//clearInterval(intervalId);
+				//console.log([this.info.cx, max_x], [this.info.cx, min_x]);
 				this.info.velocity.x = this.info.velocity.x * -1;
 			}
-			if( this.info.cy > document.body.clientHeight || this.info.cy < 0)
+			if( this.info.cy >= max_y || this.info.cy <= min_y)
 			{
+				//clearInterval(intervalId);
+				//console.log([this.info.cy, max_y], [this.info.cy, min_y]);
 				this.info.velocity.y = this.info.velocity.y * -1;
 			}
 
@@ -73,7 +84,7 @@
 	function PlayGround()
 	{
 		var counter = 0;  //counts the number of circles created
-		var circles = [ ]; //array that will hold all the circles created in the app
+		
 
 		//a loop that updates the circle's position on the screen
 		this.loop = function(){
@@ -94,7 +105,7 @@
 	}
 
 	var playground = new PlayGround();
-	setInterval(playground.loop, 15);
+	var intervalId = setInterval(playground.loop, 15);
 
 	document.onclick = function(e) {
 		playground.createNewCircle(e.x,e.y);
