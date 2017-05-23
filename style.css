@@ -13,3 +13,8 @@ svg{
 	width: 100%;
 	height: 100%;
 }
+svg circle{
+	fill: white;
+	stroke: cyan;
+	stroke-width: 1px;
+}

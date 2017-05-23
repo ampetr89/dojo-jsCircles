@@ -9,7 +9,8 @@
 
 	<script>
 	var r= 10;
-	var borderSize = 2; // copy value from css
+	var borderSize = 2, // copy value from css
+		bubbleBorder = 1; 
 	var circles = [ ]; //array that will hold all the circles created in the app
 	function Circle(cx, cy, html_id)
 	{
@@ -33,8 +34,8 @@
 				{ 	cx: this.info.cx+"px",
 				  	cy: this.info.cy+"px",
 				  	r:  r,
-				  	id: html_id,
-				  	style: "fill: black"
+				  	id: html_id
+				  	//style: "fill: black"
 				});
 
 			document.getElementById('svg').appendChild(circle);
@@ -42,10 +43,10 @@
 
 		this.update = function(time){
 			var el = document.getElementById(html_id);
-			var max_x = document.body.clientWidth - r - borderSize,
-				min_x = r + borderSize,
-				max_y = document.body.clientHeight - r - borderSize,
-				min_y = r + borderSize;
+			var max_x = document.body.clientWidth - r - borderSize - bubbleBorder,
+				min_x = r + borderSize + bubbleBorder,
+				max_y = document.body.clientHeight - r - borderSize - bubbleBorder,
+				min_y = r + borderSize + bubbleBorder;
 
 			//see if the circle is going outside the browser. if it is, reverse the velocity
 			if( this.info.cx >= max_x || this.info.cx <= min_x)
