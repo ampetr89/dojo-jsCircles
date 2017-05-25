@@ -3,20 +3,41 @@
 	<title>Javascript Box - OOP demo</title>
 	<link rel="stylesheet" href="style.css">
 </head>
+<header>
+	<button type="button" id="increment">Increment</button>
+</header>
 <body>
 
 	<svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
 
 	<script>
-	var r= 10;
-	var borderSize = 2, // copy value from css
-		bubbleBorder = 1; 
-	var circles = [ ]; //array that will hold all the circles created in the app
+	var circles;
+	var bins = [],
+		r=10, // circle radius
+		bin_size = 2*r,
+		nx = Math.ceil(screen.width/bin_size),
+		ny = Math.ceil(screen.height/bin_size),
+		collisions = [];
+
+	for(var i=0; i<nx; i++){
+		bins[i] = [];
+		for(var j=0; j<ny; j++){
+			bins[i][j] = []; // bins is a 2D array,where each element is a 1D array of 0 or more circle objects that occupy that bin
+		}
+	}
+	
 	function Circle(cx, cy, html_id)
 	{
-		var html_id = html_id;
-		this.info = { cx: cx,  cy: cy };
-		
+		this.html_id = html_id;
+		this.info = {
+					cx: cx,  
+					cy: cy,
+					cx_bin: Math.floor((cx+screen.width/2)/bin_size),
+					cy_bin: Math.floor((cy+screen.height/2)/bin_size)
+					};
+		// identify the circle by its html_id
+		bins[this.info.cx_bin][this.info.cy_bin].push(html_id);
+
 		//private function that generates a random number
 		var randomNumberBetween = function(min, max){
 			return Math.random()*(max-min) + min;
@@ -31,11 +52,11 @@
 
 			//create a circle 
 			var circle = makeSVG('circle', 
-				{ 	cx: this.info.cx+"px",
-				  	cy: this.info.cy+"px",
+				{ 	cx: this.info.cx,
+				  	cy: this.info.cy,
 				  	r:  r,
-				  	id: html_id
-				  	//style: "fill: black"
+				  	id: html_id,
+				  	style: "fill: black"
 				});
 
 			document.getElementById('svg').appendChild(circle);
@@ -43,28 +64,36 @@
 
 		this.update = function(time){
 			var el = document.getElementById(html_id);
-			var max_x = document.body.clientWidth - r - borderSize - bubbleBorder,
-				min_x = r + borderSize + bubbleBorder,
-				max_y = document.body.clientHeight - r - borderSize - bubbleBorder,
-				min_y = r + borderSize + bubbleBorder;
 
 			//see if the circle is going outside the browser. if it is, reverse the velocity
-			if( this.info.cx >= max_x || this.info.cx <= min_x)
-			{	
-				//clearInterval(intervalId);
-				//console.log([this.info.cx, max_x], [this.info.cx, min_x]);
+			if( this.info.cx > document.body.clientWidth || this.info.cx < 0)
+			{
 				this.info.velocity.x = this.info.velocity.x * -1;
 			}
-			if( this.info.cy >= max_y || this.info.cy <= min_y)
+			if( this.info.cy > document.body.clientHeight || this.info.cy < 0)
 			{
-				//clearInterval(intervalId);
-				//console.log([this.info.cy, max_y], [this.info.cy, min_y]);
 				this.info.velocity.y = this.info.velocity.y * -1;
 			}
 
 			this.info.cx = this.info.cx + this.info.velocity.x*time;
 			this.info.cy = this.info.cy + this.info.velocity.y*time;
 
+			// remove it from its current bin
+			var idx = bins[this.info.cx_bin][this.info.cy_bin].indexOf(this.html_id);
+			bins[this.info.cx_bin][this.info.cy_bin].splice(idx,1);
+
+			// assign to new bin
+			this.info.cx_bin = Math.floor((this.info.cx+screen.width/2)/bin_size);
+			this.info.cy_bin = Math.floor((this.info.cy+screen.height/2)/bin_size);
+			bins[this.info.cx_bin][this.info.cy_bin].push(this.html_id);
+
+			var bin_members = bins[this.info.cx_bin][this.info.cy_bin];
+			if(bin_members.length > 1){
+				console.log("collision or near collision among these circles!",
+					bin_members);
+				collisions.push([this.info.cx_bin, this.info.cy_bin]);
+				//clearInterval(intervalId);
+			}
 			el.setAttribute("cx", this.info.cx);
 			el.setAttribute("cy", this.info.cy);
 		}
@@ -85,14 +114,24 @@
 	function PlayGround()
 	{
 		var counter = 0;  //counts the number of circles created
-		
+		var circles = [ ]; //array that will hold all the circles created in the app
 
+		function handleCollisions(){
+			var handled = [];
+			for(var i=1; i< collisions.length; i++){
+				// PHSYICS GOES HERE
+				console.log(collisions[i]);
+			}
+		}
 		//a loop that updates the circle's position on the screen
 		this.loop = function(){
-			for(circle in circles)
+			for(var k in circles)
 			{
-				circles[circle].update(1);
+				circles[k].update(1);
+				console.log(k, [circles[k].info.cx_bin,circles[k].info.cy_bin])
 			}
+			handleCollisions();
+			collisions = [];
 		}
 
 		this.createNewCircle = function(x,y){
@@ -106,11 +145,20 @@
 	}
 
 	var playground = new PlayGround();
-	var intervalId = setInterval(playground.loop, 15);
+	setInterval(playground.loop, 15);
 
+	var Button = document.getElementById("increment");	
 	document.onclick = function(e) {
 		playground.createNewCircle(e.x,e.y);
 	}
+	/*
+	Button.onclick = function(e){
+		playground.loop();
+		//pause = true;
+		//clearInterval(intervalId);
+		//pauseButton.innerHTML = 'Resume';
+	}*/
+
 	
 	</script>
 
